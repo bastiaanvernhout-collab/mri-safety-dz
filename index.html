@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MRI Safety DZ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e2e0da;
+    --border-strong: #c8c5bc;
+    --text: #1a1917;
+    --text-muted: #6b6860;
+    --text-faint: #9e9c97;
+    --accent: #1a5fba;
+    --accent-bg: #eef4fd;
+    --success: #1a6b3a;
+    --success-bg: #edfaf3;
+    --warning: #7a4f00;
+    --warning-bg: #fef9ec;
+    --danger: #8b1f1f;
+    --danger-bg: #fdf0f0;
+    --pdf-color: #0f5c8a;
+    --pdf-bg: #e8f4fb;
+    --radius: 8px;
+    --radius-lg: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  header p { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 680px) {
+    .container { grid-template-columns: 1fr; padding: 1rem; }
+    header { padding: 1rem; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 1rem;
+  }
+
+  .search-wrap { position: relative; margin-bottom: 10px; }
+  .search-wrap input {
+    width: 100%; font-family: inherit; font-size: 14px;
+    padding: 10px 40px 10px 12px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    background: var(--bg); color: var(--text);
+    outline: none; transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); background: #fff; }
+  .search-wrap svg { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
+
+  #suggestions {
+    position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: var(--radius); z-index: 100; display: none; overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .sug-item {
+    padding: 8px 12px; font-size: 13px; cursor: pointer;
+    color: var(--text); display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sug-item:last-child { border-bottom: none; }
+  .sug-item:hover { background: var(--bg); }
+
+  button.primary {
+    width: 100%; padding: 10px 16px; background: var(--accent);
+    color: #fff; border: none; border-radius: var(--radius);
+    font-family: inherit; font-size: 14px; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: background 0.15s, opacity 0.15s;
+  }
+  button.primary:hover { background: #1550a0; }
+  button.primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  button.secondary {
+    padding: 7px 12px; background: transparent;
+    color: var(--text-muted); border: 1px solid var(--border-strong);
+    border-radius: var(--radius); font-family: inherit; font-size: 13px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    transition: background 0.15s;
+  }
+  button.secondary:hover { background: var(--bg); }
+
+  #loading {
+    display: none; align-items: center; gap: 10px;
+    font-size: 13px; color: var(--text-muted); padding: 1rem 0;
+  }
+  .spin {
+    width: 16px; height: 16px; flex-shrink: 0;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #result-card { display: none; margin-top: 1rem; }
+
+  .result-name { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .result-mfr { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: 600; padding: 4px 10px;
+    border-radius: 20px; margin: 10px 0 6px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .badge-safe { background: var(--success-bg); color: var(--success); }
+  .badge-unsafe { background: var(--danger-bg); color: var(--danger); }
+  .badge-conditional { background: var(--warning-bg); color: var(--warning); }
+
+  .source-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 500; padding: 3px 8px;
+    border-radius: 4px; margin-bottom: 1rem;
+  }
+  .source-tag.pdf { background: var(--pdf-bg); color: var(--pdf-color); }
+  .source-tag.web { background: #f0eeea; color: #5a5850; }
+
+  .advice {
+    font-size: 14px; line-height: 1.65;
+    margin-bottom: 1rem; padding: 10px 12px;
+    background: var(--bg); border-radius: var(--radius);
+    border-left: 3px solid var(--border-strong);
+  }
+
+  .params-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 1rem;
+  }
+  .param {
+    background: var(--bg); border-radius: var(--radius);
+    padding: 10px 12px; border: 1px solid var(--border);
+  }
+  .param-label { font-size: 10px; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+  .param-value { font-size: 14px; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
+
+  .source-info {
+    font-size: 12px; color: var(--text-muted);
+    padding: 8px 12px; background: var(--bg);
+    border-radius: var(--radius); border: 1px solid var(--border);
+    margin-bottom: 1rem; line-height: 1.6;
+  }
+  .source-info a { color: var(--accent); text-decoration: none; }
+  .source-info a:hover { text-decoration: underline; }
+
+  .sig-section { border-top: 1px solid var(--border); padding-top: 1rem; margin-top: 0.5rem; }
+  .sig-label { font-size: 12px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .sig-section input[type=text] {
+    width: 100%; font-family: inherit; font-size: 14px;
+    padding: 9px 12px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius); background: var(--bg); color: var(--text);
+    outline: none; margin-bottom: 10px; transition: border-color 0.15s;
+  }
+  .sig-section input:focus { border-color: var(--accent); background: #fff; }
+  #sig-canvas {
+    display: block; width: 100%; height: 80px;
+    border: 1px solid var(--border-strong); border-radius: var(--radius);
+    background: var(--bg); cursor: crosshair; touch-action: none;
+  }
+  .sig-row { display: flex; gap: 8px; margin-top: 6px; margin-bottom: 10px; }
+  .signed-ok {
+    display: none; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--success);
+    background: var(--success-bg); padding: 8px 12px;
+    border-radius: var(--radius); margin-top: 8px;
+    border: 1px solid #b8e8ce;
+  }
+
+  .upload-zone {
+    border: 1.5px dashed var(--border-strong); border-radius: var(--radius);
+    padding: 1.25rem; text-align: center; cursor: pointer; margin-bottom: 1rem;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .upload-zone:hover { background: var(--bg); border-color: var(--accent); }
+  .upload-zone p { font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .upload-zone svg { color: var(--text-faint); }
+
+  .pdf-item {
+    padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 6px;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .pdf-item svg { color: var(--pdf-color); flex-shrink: 0; margin-top: 2px; }
+  .pdf-item-body { flex: 1; min-width: 0; }
+  .pdf-item-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pdf-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .pdf-del { background: none; border: none; cursor: pointer; color: var(--text-faint); padding: 2px; flex-shrink: 0; }
+  .pdf-del:hover { color: var(--danger); }
+
+  .empty-lib { font-size: 13px; color: var(--text-faint); text-align: center; padding: 1rem 0; }
+
+  .priority-note {
+    font-size: 11px; color: var(--text-muted);
+    background: var(--accent-bg); border-radius: var(--radius);
+    padding: 8px 10px; margin-top: 10px; line-height: 1.6;
+    border: 1px solid #c5d9f5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+    <rect width="28" height="28" rx="6" fill="#eef4fd"/>
+    <path d="M14 6C9.58 6 6 9.58 6 14s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 2a6 6 0 110 12A6 6 0 0114 8zm-1 3v4l3.5 2-.7 1.2L12 16.5V11h1z" fill="#1a5fba"/>
+  </svg>
+  <div>
+    <h1>MRI Safety DZ</h1>
+    <p>Fabrikantsdocumenten hebben altijd voorrang boven websearch</p>
+  </div>
+</header>
+
+<div class="container">
+  <div>
+    <div class="card">
+      <div class="card-title">Zoeken</div>
+      <div class="search-wrap">
+        <input type="text" id="search-input" placeholder="Bijv. Kurz TTP Variac, Medtronic Advisa MRI..." autocomplete="off" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <div id="suggestions"></div>
+      </div>
+      <button class="primary" id="search-btn" onclick="doLookup()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Zoek MRI-veiligheid op
+      </button>
+
+      <div id="loading">
+        <div class="spin"></div>
+        <span id="loading-text">Zoeken...</span>
+      </div>
+
+      <div id="result-card" class="card" style="border-color:var(--border-strong);">
+        <div class="result-name" id="res-name"></div>
+        <div class="result-mfr" id="res-mfr"></div>
+        <div id="res-badge" class="status-badge"></div><br>
+        <div id="res-source-tag" class="source-tag"></div>
+        <div class="advice" id="res-advice"></div>
+        <div class="params-grid" id="res-params"></div>
+        <div class="source-info" id="res-source-info"></div>
+
+        <div class="sig-section">
+          <span class="sig-label">Naam radioloog</span>
+          <input type="text" id="rad-name" placeholder="Dr. ..." />
+          <span class="sig-label">Handtekening</span>
+          <canvas id="sig-canvas" width="680" height="80"></canvas>
+          <div class="sig-row">
+            <button class="secondary" onclick="clearSig()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+              Wissen
+            </button>
+          </div>
+          <button class="primary" id="sign-btn" onclick="signForm()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Formulier ondertekenen
+          </button>
+          <div class="signed-ok" id="signed-ok">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span id="signed-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <div class="card-title">PDF-bibliotheek</div>
+      <div class="upload-zone" onclick="document.getElementById('pdf-input').click()" id="upload-zone">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        <p>Klik om een fabrikants-PDF te uploaden</p>
+      </div>
+      <input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="handlePdfUpload(event)" />
+      <div id="empty-lib" class="empty-lib">Nog geen documenten.</div>
+      <div id="pdf-list"></div>
+      <div class="priority-note">
+        <strong>Prioriteitsvolgorde:</strong><br>
+        1. Geüploade fabrikants-PDFs<br>
+        2. Live websearch (fallback)<br><br>
+        Bron wordt altijd vermeld in het resultaat.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const HIST_KEY = 'mri_hist';
+const PDF_KEY = 'mri_pdfs';
+
+function getHistory() { try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch(e) { return []; } }
+function saveHistory(t) {
+  let h = getHistory();
+  h = [t, ...h.filter(x => x.toLowerCase() !== t.toLowerCase())].slice(0, 30);
+  localStorage.setItem(HIST_KEY, JSON.stringify(h));
+}
+function getPdfs() { try { return JSON.parse(localStorage.getItem(PDF_KEY) || '[]'); } catch(e) { return []; } }
+function savePdfs(a) { localStorage.setItem(PDF_KEY, JSON.stringify(a)); }
+
+window.addEventListener('DOMContentLoaded', renderPdfList);
+
+const input = document.getElementById('search-input');
+const sugg = document.getElementById('suggestions');
+input.addEventListener('input', () => {
+  const q = input.value.trim().toLowerCase();
+  sugg.innerHTML = ''; sugg.style.display = 'none';
+  if (q.length < 2) return;
+  const m = getHistory().filter(x => x.toLowerCase().includes(q)).slice(0, 6);
+  if (!m.length) return;
+  m.forEach(s => {
+    const d = document.createElement('div'); d.className = 'sug-item';
+    d.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 110 2"/></svg>${s}`;
+    d.onclick = () => { input.value = s; sugg.style.display = 'none'; };
+    sugg.appendChild(d);
+  });
+  sugg.style.display = 'block';
+});
+input.addEventListener('keydown', e => { if (e.key === 'Enter') doLookup(); });
+document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) sugg.style.display = 'none'; });
+
+async function callClaude(body) {
+  const resp = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!resp.ok) { const e = await resp.json(); throw new Error(e.error || resp.statusText); }
+  return resp.json();
+}
+
+async function doLookup() {
+  const q = input.value.trim(); if (!q) return;
+  saveHistory(q);
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('loading').style.display = 'flex';
+  document.getElementById('search-btn').disabled = true;
+
+  const pdfs = getPdfs();
+  let result = null; let sourceType = 'web';
+
+  if (pdfs.length) {
+    document.getElementById('loading-text').textContent = 'Zoeken in eigen bibliotheek...';
+    try { result = await searchInPdfs(q, pdfs); if (result) sourceType = 'pdf'; } catch(e) {}
+  }
+
+  if (!result) {
+    document.getElementById('loading-text').textContent = 'Niet gevonden in bibliotheek — live websearch...';
+    try { result = await searchWeb(q); sourceType = 'web'; } catch(e) { alert('Fout: ' + e.message); }
+  }
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('search-btn').disabled = false;
+  if (result) renderResult(result, sourceType);
+  else alert('Geen resultaat gevonden. Probeer een specifiekere naam.');
+}
+
+async function searchInPdfs(q, pdfs) {
+  const combined = pdfs.map((p, i) => `=== DOCUMENT ${i+1}: ${p.name} (geüpload ${p.date}) ===\n${p.text}`).join('\n\n');
+  const prompt = `Je bent een MRI-veiligheidsspecialist. Zoek in de onderstaande fabrikantsdocumenten naar het implantaat: "${q}"
+
+Geef de exacte MRI-veiligheidsinformatie uit het document. Als het product niet gevonden wordt, geef {"found":false}.
+
+DOCUMENTEN:
+${combined.slice(0, 35000)}
+
+Antwoord UITSLUITEND als geldig JSON zonder markdown:
+Indien gevonden: {"found":true,"name":"exacte naam","manufacturer":"fabrikant","document_name":"bestandsnaam","document_section":"sectienaam","ref_numbers":"REF-nummers","status":"MR Safe of MR Unsafe of MR Conditional","advice":"2-3 zinnen klinisch advies exact uit het document","params":[{"label":"Max veldsterkte","value":"..."},{"label":"Max SAR (geheel lichaam)","value":"..."},{"label":"Max gradientveld","value":"..."},{"label":"Max temperatuurstijging","value":"..."}]}
+Indien niet gevonden: {"found":false}`;
+
+  const data = await callClaude({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] });
+  const text = data.content.map(i => i.text || '').join('').replace(/```json|```/g, '').trim();
+  const m = text.match(/\{[\s\S]*\}/); if (!m) return null;
+  const r = JSON.parse(m[0]);
+  return r.found ? r : null;
+}
+
+async function searchWeb(q) {
+  const prompt = `Je bent een MRI-veiligheidsspecialist. Zoek live naar MRI-veiligheidsinformatie voor het implantaat: "${q}". Raadpleeg MRISafety.com, producentsites en richtlijnen.
+Antwoord UITSLUITEND als geldig JSON zonder markdown:
+{"name":"officiële naam","manufacturer":"fabrikant","status":"MR Safe of MR Unsafe of MR Conditional","advice":"2-3 zinnen klinisch advies","params":[],"sources":[{"title":"paginatitel","url":"url"}]}`;
+
+  const data = await callClaude({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, tools: [{ type: 'web_search_20250305', name: 'web_search' }], messages: [{ role: 'user', content: prompt }] });
+  const text = data.content.map(i => i.type === 'text' ? i.text : '').join('').replace(/```json|```/g, '').trim();
+  const m = text.match(/\{[\s\S]*\}/); if (!m) return null;
+  return JSON.parse(m[0]);
+}
+
+function renderResult(r, sourceType) {
+  document.getElementById('res-name').textContent = r.name || input.value;
+  document.getElementById('res-mfr').textContent = r.manufacturer || '';
+
+  const badge = document.getElementById('res-badge');
+  if (r.status === 'MR Safe') { badge.className = 'status-badge badge-safe'; badge.textContent = '✓ MR Safe'; }
+  else if (r.status === 'MR Unsafe') { badge.className = 'status-badge badge-unsafe'; badge.textContent = '✗ MR Unsafe — geen MRI uitvoeren'; }
+  else { badge.className = 'status-badge badge-conditional'; badge.textContent = '⚠ MR Conditional'; }
+
+  const tag = document.getElementById('res-source-tag');
+  if (sourceType === 'pdf') {
+    tag.className = 'source-tag pdf';
+    tag.textContent = '📄 Fabrikantsdocument — ' + (r.document_name || 'geüploade PDF');
+  } else {
+    tag.className = 'source-tag web';
+    tag.textContent = '🌐 Live websearch';
+  }
+
+  document.getElementById('res-advice').textContent = r.advice || '';
+
+  const grid = document.getElementById('res-params'); grid.innerHTML = '';
+  if (r.params && r.params.length) {
+    r.params.forEach(p => {
+      grid.innerHTML += `<div class="param"><div class="param-label">${p.label}</div><div class="param-value">${p.value}</div></div>`;
+    });
+  }
+
+  const info = document.getElementById('res-source-info');
+  if (sourceType === 'pdf') {
+    let t = r.document_name || 'geüploade PDF';
+    if (r.document_section) t += ' — ' + r.document_section;
+    if (r.ref_numbers) t += '<br>REF: ' + r.ref_numbers;
+    info.innerHTML = '📋 ' + t;
+  } else if (r.sources && r.sources.length) {
+    info.innerHTML = r.sources.map(s => `<a href="${s.url}" target="_blank">${s.title || s.url}</a>`).join('<br>');
+  } else { info.innerHTML = ''; }
+
+  document.getElementById('sign-btn').style.display = 'flex';
+  document.getElementById('signed-ok').style.display = 'none';
+  document.getElementById('result-card').style.display = 'block';
+}
+
+async function handlePdfUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const zone = document.getElementById('upload-zone');
+  zone.innerHTML = '<div class="spin" style="margin:0 auto 8px"></div><p>PDF wordt verwerkt...</p>';
+  try {
+    const ab = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+    let text = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(it => it.str).join(' ') + '\n';
+    }
+    const pdfs = getPdfs();
+    pdfs.unshift({ name: file.name, date: new Date().toLocaleDateString('nl-NL'), text: text.slice(0, 40000) });
+    savePdfs(pdfs);
+    renderPdfList();
+  } catch(err) { alert('Kon PDF niet verwerken: ' + err.message); }
+  e.target.value = '';
+  zone.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><p>Klik om een fabrikants-PDF te uploaden</p>';
+}
+
+function renderPdfList() {
+  const pdfs = getPdfs();
+  document.getElementById('empty-lib').style.display = pdfs.length ? 'none' : 'block';
+  const list = document.getElementById('pdf-list'); list.innerHTML = '';
+  pdfs.forEach((p, i) => {
+    const d = document.createElement('div'); d.className = 'pdf-item';
+    d.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      <div class="pdf-item-body">
+        <div class="pdf-item-name">${p.name}</div>
+        <div class="pdf-item-meta">Geüpload: ${p.date}</div>
+      </div>
+      <button class="pdf-del" onclick="deletePdf(${i})" title="Verwijderen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+      </button>`;
+    list.appendChild(d);
+  });
+}
+
+function deletePdf(i) {
+  if (!confirm('Document verwijderen?')) return;
+  const pdfs = getPdfs(); pdfs.splice(i, 1); savePdfs(pdfs); renderPdfList();
+}
+
+const canvas = document.getElementById('sig-canvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = canvas.width / rect.width, sy = canvas.height / rect.height;
+  const src = e.touches ? e.touches[0] : e;
+  return { x: (src.clientX - rect.left) * sx, y: (src.clientY - rect.top) * sy };
+}
+canvas.addEventListener('mousedown', e => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.strokeStyle = '#1a1917'; ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineTo(p.x, p.y); ctx.stroke(); });
+canvas.addEventListener('mouseup', () => drawing = false);
+canvas.addEventListener('mouseleave', () => drawing = false);
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.strokeStyle = '#1a1917'; ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineTo(p.x, p.y); ctx.stroke(); });
+canvas.addEventListener('touchend', () => drawing = false);
+function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+function signForm() {
+  const name = document.getElementById('rad-name').value.trim();
+  if (!name) { alert('Vul uw naam in.'); return; }
+  const now = new Date();
+  document.getElementById('signed-text').textContent = `Ondertekend door ${name} — ${now.toLocaleDateString('nl-NL')} ${now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })}`;
+  document.getElementById('signed-ok').style.display = 'flex';
+  document.getElementById('sign-btn').style.display = 'none';
+}
+</script>
+</body>
+</html>

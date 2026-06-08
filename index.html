@@ -224,15 +224,17 @@ async function doLookup(){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({query:q,pdfText:pdfText||null})
     });
-    if(!resp.ok){const e=await resp.json();throw new Error(e.error||resp.statusText)}
-    const data=await resp.json();
+    const rawText=await resp.text();
+    if(!resp.ok){throw new Error('Server '+resp.status+': '+rawText)}
+    let data;
+    try{data=JSON.parse(rawText)}catch(e){throw new Error('Ongeldige response: '+rawText.slice(0,200))}
     const text=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
     const m=text.match(/\{[\s\S]*\}/);
     if(!m)throw new Error('Geen geldig antwoord ontvangen');
     const r=JSON.parse(m[0]);
     renderResult(r,data.used_pdf&&r.found_in_pdf?'pdf':data.used_web_search?'web':'ai');
   }catch(e){
-    alert('Fout: '+e.message);
+    alert('Fout: '+JSON.stringify(e));
   }
 
   document.getElementById('loading').style.display='none';

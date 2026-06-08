@@ -1,4 +1,6 @@
-export default async function handler(req, res) {
+const https = require('https');
+
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -25,8 +27,7 @@ export default async function handler(req, res) {
             api_key: tavilyKey,
             query: query + ' MRI safety implant conditional SAR',
             search_depth: 'basic',
-            max_results: 5,
-            include_domains: ['mrisafety.com', 'medtronic.com', 'bostonscientific.com', 'abbott.com', 'biotronik.com', 'kurzmed.com', 'nvvr.nl']
+            max_results: 5
           })
         });
         const tavilyData = await tavilyResp.json();
@@ -37,7 +38,7 @@ export default async function handler(req, res) {
           usedWebSearch = true;
         }
       } catch(e) {
-        // Tavily failed, continue without
+        console.log('Tavily error:', e.message);
       }
     }
 
@@ -45,11 +46,11 @@ export default async function handler(req, res) {
     let prompt = `Je bent een MRI-veiligheidsspecialist. Geef MRI-veiligheidsinformatie voor het implantaat: "${query}"\n`;
 
     if (pdfText) {
-      prompt += `\nRAEDPLEEG EERST dit fabrikantsdocument (heeft ALTIJD voorrang boven andere bronnen):\n${pdfText.slice(0, 30000)}\n`;
+      prompt += `\nRAEDPLEEG EERST dit fabrikantsdocument (heeft ALTIJD voorrang):\n${pdfText.slice(0, 30000)}\n`;
     }
 
     if (searchResults) {
-      prompt += `\nAANVULLENDE ZOEKRESULTATEN van het web:\n${searchResults}\n`;
+      prompt += `\nAANVULLENDE ZOEKRESULTATEN:\n${searchResults}\n`;
     }
 
     prompt += `
@@ -71,8 +72,7 @@ Antwoord UITSLUITEND als geldig JSON zonder markdown:
   "document_name": "bestandsnaam indien uit PDF",
   "document_section": "sectienaam indien uit PDF",
   "ref_numbers": "REF-nummers indien bekend"
-}
-Geef lege params array bij MR Safe of MR Unsafe. Bij MR Conditional altijd parameters invullen.`;
+}`;
 
     // Step 3: Call Claude
     const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -97,6 +97,7 @@ Geef lege params array bij MR Safe of MR Unsafe. Bij MR Conditional altijd param
     });
 
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error('Handler error:', err);
+    return res.status(500).json({ error: err.message || 'Unknown error' });
   }
 }

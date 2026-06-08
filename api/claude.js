@@ -1,103 +1,23 @@
-
-
-module.exports = async function handler(req, res) {
+module.exports = async function(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const anthropicKey = process.env.ANTHROPIC_API_KEY;
-  const tavilyKey = process.env.TAVILY_API_KEY;
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return res.status(500).json({ error: 'No API key' });
 
-  if (!anthropicKey) {
-    return res.status(500).json({ error: 'Anthropic API key not configured' });
-  }
+  const { query, pdfText } = req.body;
 
-  try {
-    const { query, pdfText } = req.body;
+  let prompt = `Je bent een MRI-veiligheidsspecialist. Geef MRI-veiligheidsinformatie voor: "${query}".`;
+  if (pdfText) prompt += `\n\nFabrikantsdocument (heeft voorrang):\n${pdfText.slice(0, 20000)}`;
+  prompt += `\n\nAntwoord als JSON: {"found_in_pdf":false,"name":"...","manufacturer":"...","status":"MR Safe of MR Unsafe of MR Conditional","advice":"...","params":[],"sources":[],"confidence":"hoog","document_name":"","document_section":"","ref_numbers":""}`;
 
-    // Step 1: Search with Tavily
-    let searchResults = '';
-    let usedWebSearch = false;
-    if (tavilyKey && query) {
-      try {
-        const tavilyResp = await fetch('https://api.tavily.com/search', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            api_key: tavilyKey,
-            query: query + ' MRI safety implant conditional SAR',
-            search_depth: 'basic',
-            max_results: 5
-          })
-        });
-        const tavilyData = await tavilyResp.json();
-        if (tavilyData.results && tavilyData.results.length) {
-          searchResults = tavilyData.results
-            .map(r => `Titel: ${r.title}\nURL: ${r.url}\nInhoud: ${r.content}`)
-            .join('\n\n');
-          usedWebSearch = true;
-        }
-      } catch(e) {
-        console.log('Tavily error:', e.message);
-      }
-    }
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+  });
 
-    // Step 2: Build prompt
-    let prompt = `Je bent een MRI-veiligheidsspecialist. Geef MRI-veiligheidsinformatie voor het implantaat: "${query}"\n`;
-
-    if (pdfText) {
-      prompt += `\nRAEDPLEEG EERST dit fabrikantsdocument (heeft ALTIJD voorrang):\n${pdfText.slice(0, 30000)}\n`;
-    }
-
-    if (searchResults) {
-      prompt += `\nAANVULLENDE ZOEKRESULTATEN:\n${searchResults}\n`;
-    }
-
-    prompt += `
-Antwoord UITSLUITEND als geldig JSON zonder markdown:
-{
-  "found_in_pdf": true of false,
-  "name": "officiële productnaam",
-  "manufacturer": "fabrikant",
-  "status": "MR Safe" of "MR Unsafe" of "MR Conditional",
-  "advice": "2-3 zinnen klinisch advies",
-  "params": [
-    {"label": "Max veldsterkte", "value": "..."},
-    {"label": "Max SAR (geheel lichaam)", "value": "..."},
-    {"label": "Max gradientveld", "value": "..."},
-    {"label": "Max temperatuurstijging", "value": "..."}
-  ],
-  "sources": [{"title": "naam bron", "url": "url of leeg"}],
-  "confidence": "hoog" of "middel" of "laag",
-  "document_name": "bestandsnaam indien uit PDF",
-  "document_section": "sectienaam indien uit PDF",
-  "ref_numbers": "REF-nummers indien bekend"
-}`;
-
-    // Step 3: Call Claude
-    const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await claudeResp.json();
-    return res.status(claudeResp.status).json({
-      ...data,
-      used_web_search: usedWebSearch,
-      used_pdf: !!pdfText
-    });
-
-  } catch (err) {
-    console.error('Handler error:', err);
-    return res.status(500).json({ error: err.message || 'Unknown error' });
-  }
+  const data = await r.json();
+  return res.status(r.status).json({ ...data, used_web_search: false, used_pdf: !!pdfText });
 }

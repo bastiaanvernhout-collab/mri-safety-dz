@@ -3,418 +3,351 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MRI Safety DZ — Deventer Ziekenhuis</title>
+<title>MRI Registratieformulier Implantaten — Deventer Ziekenhuis</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #f0f2f5;
-    --surface: #ffffff;
-    --border: #dde1e8;
-    --border-strong: #b8bec9;
-    --text: #1c2333;
-    --text-muted: #5a6478;
-    --text-faint: #9099ab;
-    --accent: #1a4fa3;
-    --accent-light: #e8eef9;
-    --success: #0f6b3a;
-    --success-bg: #e8f7ef;
-    --warning: #7a4800;
-    --warning-bg: #fff4e0;
-    --danger: #8b1515;
-    --danger-bg: #fdf0f0;
-    --dz-blue: #003d7a;
-    --dz-light: #e6eef7;
-    --radius: 6px;
-    --radius-lg: 10px;
-    --mono: 'JetBrains Mono', monospace;
-  }
+  @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+  body { font-family: Arial, sans-serif; background: #e8e8e8; font-size: 13px; }
 
-  /* Header */
-  header { background: var(--dz-blue); padding: 0.875rem 2rem; display: flex; align-items: center; justify-content: space-between; }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .header-logo { width: 36px; height: 36px; background: white; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .header-logo svg { width: 22px; height: 22px; }
-  header h1 { font-size: 15px; font-weight: 600; color: white; letter-spacing: -0.01em; }
-  header p { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 1px; }
-  .header-badge { font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; }
+  /* Top bar met zoekfunctie */
+  .topbar { background: #003d7a; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+  .topbar h1 { color: white; font-size: 14px; font-weight: bold; }
+  .topbar-search { display: flex; gap: 8px; align-items: center; margin-left: auto; }
+  .topbar-search input { font-family: inherit; font-size: 13px; padding: 6px 10px; border: none; border-radius: 4px; width: 280px; outline: none; }
+  .topbar-search button { padding: 6px 14px; background: #f0a500; color: white; border: none; border-radius: 4px; font-family: inherit; font-size: 13px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+  .topbar-search button:hover { background: #d4920a; }
+  .topbar-search button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-  /* Layout */
-  .layout { max-width: 1100px; margin: 0 auto; padding: 1.5rem; display: grid; grid-template-columns: 340px 1fr; gap: 1.25rem; align-items: start; }
-  @media (max-width: 768px) { .layout { grid-template-columns: 1fr; padding: 1rem; } header { padding: 0.875rem 1rem; } .header-badge { display: none; } }
-
-  /* Cards */
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-  .card-header { padding: 0.875rem 1.125rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
-  .card-header-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .card-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .card-body { padding: 1.125rem; }
-
-  /* Search */
-  .search-wrap { position: relative; margin-bottom: 10px; }
-  .search-wrap input { width: 100%; font-family: inherit; font-size: 14px; padding: 9px 38px 9px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.15s, background 0.15s; }
-  .search-wrap input:focus { border-color: var(--accent); background: white; }
-  .search-wrap svg { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); color: var(--text-faint); pointer-events: none; }
-  #suggestions { position: absolute; top: calc(100% + 3px); left: 0; right: 0; background: white; border: 1px solid var(--border-strong); border-radius: var(--radius); z-index: 100; display: none; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-  .sug-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: var(--text); display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  /* Suggestions */
+  .search-wrap { position: relative; }
+  #suggestions { position: absolute; top: calc(100% + 3px); left: 0; right: 0; background: white; border: 1px solid #ccc; border-radius: 4px; z-index: 200; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+  .sug-item { padding: 7px 10px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #eee; }
   .sug-item:last-child { border-bottom: none; }
-  .sug-item:hover { background: var(--bg); }
+  .sug-item:hover { background: #f0f4ff; }
 
-  /* Buttons */
-  .btn-primary { width: 100%; padding: 9px 16px; background: var(--accent); color: white; border: none; border-radius: var(--radius); font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 7px; transition: background 0.15s; }
-  .btn-primary:hover { background: #153d82; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary { padding: 6px 12px; background: transparent; color: var(--text-muted); border: 1px solid var(--border-strong); border-radius: var(--radius); font-family: inherit; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background 0.15s; }
-  .btn-secondary:hover { background: var(--bg); }
+  /* PDF bibliotheek toggle */
+  .pdf-bar { background: #f0f4ff; border-bottom: 1px solid #c8d8f0; padding: 6px 20px; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #003d7a; }
+  .pdf-bar button { font-size: 12px; padding: 3px 10px; background: #003d7a; color: white; border: none; border-radius: 3px; cursor: pointer; }
+  .pdf-bar button:hover { background: #002d5a; }
+  #pdf-panel { display: none; background: white; border-bottom: 2px solid #003d7a; padding: 12px 20px; }
+  .upload-zone { border: 1.5px dashed #aab; border-radius: 4px; padding: 10px 16px; text-align: center; cursor: pointer; display: inline-block; margin-right: 10px; font-size: 12px; color: #666; }
+  .upload-zone:hover { background: #f5f5ff; border-color: #003d7a; }
+  .pdf-items { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .pdf-chip { background: #e8eef9; border: 1px solid #b8cef0; border-radius: 4px; padding: 4px 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .pdf-chip button { background: none; border: none; cursor: pointer; color: #888; font-size: 13px; line-height: 1; padding: 0; }
+  .pdf-chip button:hover { color: #c00; }
 
-  /* Loading */
-  #loading { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); padding: 0.75rem 0; }
-  .spin { width: 14px; height: 14px; flex-shrink: 0; border: 2px solid var(--border-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  /* Status bar */
+  #status-bar { display: none; padding: 8px 20px; font-size: 12px; font-weight: bold; }
+  #status-bar.loading { background: #fff8e0; color: #7a4800; display: flex; align-items: center; gap: 8px; }
+  #status-bar.pdf-source { background: #e8f4fb; color: #0a4f78; }
+  #status-bar.web-source { background: #f0f0f0; color: #444; }
+  #status-bar.ai-source { background: #fdf0f0; color: #8b1515; }
+  .spin { width: 13px; height: 13px; border: 2px solid #f0d080; border-top-color: #7a4800; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* PDF library */
-  .upload-zone { border: 1.5px dashed var(--border-strong); border-radius: var(--radius); padding: 1rem; text-align: center; cursor: pointer; margin-bottom: 0.75rem; transition: background 0.15s, border-color 0.15s; }
-  .upload-zone:hover { background: var(--bg); border-color: var(--accent); }
-  .upload-zone p { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-  .pdf-item { padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 5px; display: flex; align-items: center; gap: 8px; }
-  .pdf-item-body { flex: 1; min-width: 0; }
-  .pdf-item-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-  .pdf-item-meta { font-size: 11px; color: var(--text-faint); margin-top: 1px; }
-  .pdf-del { background: none; border: none; cursor: pointer; color: var(--text-faint); padding: 2px; flex-shrink: 0; }
-  .pdf-del:hover { color: var(--danger); }
-  .empty-lib { font-size: 12px; color: var(--text-faint); text-align: center; padding: 0.75rem 0; }
-  .priority-note { font-size: 11px; color: var(--text-muted); background: var(--accent-light); border-radius: var(--radius); padding: 8px 10px; margin-top: 8px; line-height: 1.55; border: 1px solid #c8d8f0; }
-
   /* ===== FORMULIER ===== */
-  #formulier { display: none; }
+  .page { width: 780px; margin: 20px auto; background: white; border: 1px solid #999; padding: 20px 24px 24px; }
 
-  .form-section { margin-bottom: 1.25rem; }
-  .form-section-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.625rem; padding-bottom: 5px; border-bottom: 1px solid var(--border); }
+  /* Koptekst */
+  .koptekst { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 2px solid #003d7a; padding-bottom: 10px; }
+  .koptekst-titel { font-size: 16px; font-weight: bold; color: #003d7a; }
+  .koptekst-datum { font-size: 12px; color: #555; margin-top: 4px; }
+  .dz-logo { text-align: right; }
+  .dz-logo .dz-naam { font-size: 18px; font-weight: bold; color: #003d7a; line-height: 1.1; }
+  .dz-logo .dz-stad { font-size: 13px; color: #003d7a; }
 
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 8px; }
-  .form-row.single { grid-template-columns: 1fr; }
-  .form-field label { display: block; font-size: 11px; font-weight: 500; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
-  .form-field input[type=text], .form-field textarea { width: 100%; font-family: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.15s, background 0.15s; }
-  .form-field input:focus, .form-field textarea:focus { border-color: var(--accent); background: white; }
-  .form-field textarea { resize: vertical; min-height: 56px; }
+      /* Patientensticker */
+  .sticker-sectie { display: flex; gap: 16px; margin-bottom: 16px; }
+  .sticker-box { border: 1px solid #999; width: 220px; min-height: 70px; padding: 6px 8px; flex-shrink: 0; }
+  .sticker-label { font-size: 10px; color: #777; margin-bottom: 4px; }
+  .sticker-inhoud { font-size: 12px; color: #333; }
+  .gegevens-box { flex: 1; }
+  .gegevens-row { display: flex; align-items: center; margin-bottom: 6px; gap: 6px; }
+  .gegevens-label { font-size: 12px; width: 160px; flex-shrink: 0; }
+  .gegevens-label.bold { font-weight: bold; }
+  .gegevens-input { flex: 1; font-family: inherit; font-size: 12px; border: none; border-bottom: 1px dotted #999; padding: 2px 4px; outline: none; background: transparent; }
+  .gegevens-input:focus { border-bottom-color: #003d7a; background: #f8f9ff; }
 
-  /* Source tag */
-  .source-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 4px; margin-bottom: 0.875rem; }
-  .source-tag.pdf { background: #e8f4fb; color: #0f5c8a; }
-  .source-tag.web { background: #f0eeea; color: #5a5850; }
-  .source-tag.ai { background: #f3f0fb; color: #4a3580; }
+  /* Implantaat info */
+  .sectie { margin-bottom: 14px; }
+  .sectie-titel { font-size: 12px; font-weight: bold; margin-bottom: 6px; text-decoration: underline; }
+  .impl-row { display: flex; align-items: center; margin-bottom: 5px; gap: 6px; }
+  .impl-label { font-size: 12px; width: 90px; flex-shrink: 0; }
+  .impl-input { flex: 1; font-family: inherit; font-size: 12px; border: none; border-bottom: 1px dotted #999; padding: 2px 4px; outline: none; background: transparent; }
+  .impl-input:focus { border-bottom-color: #003d7a; background: #f8f9ff; }
+  .impl-dots { flex: 1; border-bottom: 1px dotted #999; min-width: 80px; }
 
-  /* MR Status checkboxes */
-  .status-options { display: flex; flex-direction: column; gap: 7px; margin-bottom: 1rem; }
-  .status-option { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1.5px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
-  .status-option:hover { background: var(--bg); }
-  .status-option.selected-unsafe { border-color: #c0392b; background: var(--danger-bg); }
-  .status-option.selected-safe { border-color: #27ae60; background: var(--success-bg); }
-  .status-option.selected-conditional { border-color: #e67e22; background: var(--warning-bg); }
-  .status-option input[type=radio] { accent-color: var(--accent); width: 15px; height: 15px; flex-shrink: 0; }
-  .status-option-label { font-size: 13px; font-weight: 500; color: var(--text); }
-  .status-option-desc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  /* Radioloog sectie */
+  .rad-sectie-titel { font-size: 12px; font-weight: bold; margin-bottom: 8px; }
 
-  /* Conditional params */
-  #conditional-params { display: none; background: #fffbf3; border: 1px solid #f0d080; border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem; }
-  .conditional-title { font-size: 11px; font-weight: 600; color: var(--warning); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.75rem; }
-  .param-row { display: grid; grid-template-columns: 160px 1fr 80px; gap: 8px; align-items: center; margin-bottom: 8px; }
-  .param-row:last-child { margin-bottom: 0; }
-  .param-name { font-size: 12px; color: var(--text-muted); font-weight: 500; }
-  .param-input { font-family: var(--mono); font-size: 13px; padding: 6px 9px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: white; color: var(--text); outline: none; width: 100%; }
-  .param-input:focus { border-color: var(--accent); }
-  .param-unit { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
-  .param-subrow { display: grid; grid-template-columns: 160px 1fr 80px; gap: 8px; align-items: center; margin-bottom: 4px; padding-left: 0; }
-  .param-sublabel { font-size: 11px; color: var(--text-faint); padding-left: 12px; }
+  /* Aanvinkvakjes */
+  .checkbox-groep { margin-bottom: 12px; }
+  .checkbox-rij { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; cursor: pointer; padding: 4px 6px; border-radius: 3px; transition: background 0.1s; }
+  .checkbox-rij:hover { background: #f5f5ff; }
+  .checkbox-rij.geselecteerd-unsafe { background: #fdf0f0; border: 1px solid #e88; }
+  .checkbox-rij.geselecteerd-safe { background: #edfaf3; border: 1px solid #7d8; }
+  .checkbox-rij.geselecteerd-conditional { background: #fff8e0; border: 1px solid #f0c040; }
+  .checkbox-vakje { width: 14px; height: 14px; border: 1.5px solid #333; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: white; }
+  .checkbox-vakje.checked { background: #003d7a; border-color: #003d7a; }
+  .checkbox-vakje.checked::after { content: '✓'; color: white; font-size: 10px; font-weight: bold; }
+  .checkbox-tekst { font-size: 12px; }
+
+  /* Conditional parameters tabel */
+  #conditional-blok { display: none; margin: 8px 0 10px 24px; }
+  .param-tabel { width: 100%; border-collapse: collapse; }
+  .param-tabel td { font-size: 12px; padding: 3px 6px; vertical-align: middle; }
+  .param-naam { width: 220px; color: #333; }
+  .param-waarde-input { font-family: 'Courier New', monospace; font-size: 12px; border: none; border-bottom: 1px dotted #999; width: 90px; padding: 2px 4px; text-align: right; outline: none; background: transparent; }
+  .param-waarde-input:focus { border-bottom-color: #003d7a; background: #f8f9ff; }
+  .param-eenheid { color: #555; padding-left: 4px; }
+  .param-noot { font-size: 10px; color: #777; font-style: italic; padding-left: 6px; }
 
   /* Opmerkingen */
-  .opmerkingen-wrap { margin-bottom: 1rem; }
+  .opm-label { font-size: 12px; margin-bottom: 4px; }
+  .opm-input { width: 100%; font-family: inherit; font-size: 12px; border: 1px solid #ccc; padding: 5px 7px; min-height: 44px; resize: vertical; outline: none; }
+  .opm-input:focus { border-color: #003d7a; }
 
-  /* Signature block */
-  .sig-block { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
-  .sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-  .sig-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px; }
-  .sig-input { width: 100%; font-family: inherit; font-size: 13px; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: white; color: var(--text); outline: none; }
-  .sig-input:focus { border-color: var(--accent); }
-  #sig-canvas { display: block; width: 100%; height: 72px; border: 1px solid var(--border-strong); border-radius: var(--radius); background: white; cursor: crosshair; touch-action: none; margin-bottom: 6px; }
-  .sig-actions { display: flex; gap: 6px; margin-bottom: 10px; }
-  .signed-ok { display: none; align-items: center; gap: 8px; font-size: 13px; color: var(--success); background: var(--success-bg); padding: 8px 12px; border-radius: var(--radius); border: 1px solid #b8e8ce; margin-top: 8px; }
+  /* Handtekening blok */
+  .hantekening-blok { border: 1px solid #ccc; padding: 10px 12px; margin-top: 10px; }
+  .ht-row { display: flex; align-items: center; margin-bottom: 6px; gap: 6px; }
+  .ht-label { font-size: 12px; width: 130px; flex-shrink: 0; }
+  .ht-input { flex: 1; font-family: inherit; font-size: 12px; border: none; border-bottom: 1px dotted #999; padding: 2px 4px; outline: none; background: transparent; }
+  .ht-input:focus { border-bottom-color: #003d7a; }
+  .ht-canvas-label { font-size: 12px; margin-bottom: 4px; text-decoration: underline; }
+  #sig-canvas { display: block; width: 100%; height: 72px; border: 1px dotted #999; background: #fafafa; cursor: crosshair; touch-action: none; }
+  .sig-acties { display: flex; gap: 8px; margin-top: 4px; }
+  .btn-wis { font-size: 11px; padding: 3px 10px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 3px; cursor: pointer; }
+  .btn-wis:hover { background: #e0e0e0; }
+  .btn-onderteken { width: 100%; padding: 8px; background: #003d7a; color: white; border: none; font-family: inherit; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; border-radius: 3px; }
+  .btn-onderteken:hover { background: #002d5a; }
+  .ondertekend-ok { display: none; align-items: center; gap: 8px; font-size: 12px; color: #0f6b3a; background: #edfaf3; padding: 7px 10px; border: 1px solid #7d8; border-radius: 3px; margin-top: 8px; }
 
-  /* Warning box */
-  .warn-box { font-size: 12px; color: var(--warning); background: var(--warning-bg); padding: 8px 12px; border-radius: var(--radius); margin-bottom: 0.875rem; border: 1px solid #f0d080; line-height: 1.5; }
+  /* Footer */
+  .formulier-footer { font-size: 11px; font-weight: bold; text-align: center; margin-top: 14px; border-top: 1px solid #ccc; padding-top: 8px; color: #333; }
+
+  /* Bron regel */
+  .bron-regel { font-size: 11px; color: #777; margin-top: 6px; font-style: italic; }
+
+  @media (max-width: 820px) {
+    .page { width: 100%; margin: 10px; padding: 14px; }
+    .topbar-search input { width: 180px; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <div class="header-logo">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#003d7a" stroke-width="2">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
-        <path d="M12 6v6l4 2"/>
-      </svg>
+<!-- Zoekbalk bovenaan -->
+<div class="topbar">
+  <h1>🏥 MRI Implantaten — Deventer Ziekenhuis</h1>
+  <div class="topbar-search">
+    <div class="search-wrap">
+      <input type="text" id="search-input" placeholder="Zoek implantaat (bijv. Kurz TORP, Advisa MRI)..." autocomplete="off"/>
+      <div id="suggestions"></div>
     </div>
+    <button id="search-btn" onclick="doLookup()">🔍 Zoek op</button>
+  </div>
+</div>
+
+<!-- PDF bibliotheek balk -->
+<div class="pdf-bar">
+  <span>📄 PDF-bibliotheek:</span>
+  <button onclick="togglePdfPanel()">Beheer documenten</button>
+  <span id="pdf-count-label" style="color:#555"></span>
+</div>
+<div id="pdf-panel">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+    <div class="upload-zone" onclick="document.getElementById('pdf-input').click()" id="upload-zone">
+      ⬆ Fabrikants-PDF uploaden
+    </div>
+    <input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="handlePdfUpload(event)"/>
+    <span style="font-size:12px;color:#666">Geüploade PDFs hebben altijd voorrang boven websearch</span>
+  </div>
+  <div class="pdf-items" id="pdf-list"></div>
+</div>
+
+<!-- Status balk -->
+<div id="status-bar"></div>
+
+<!-- ===== FORMULIER ===== -->
+<div class="page">
+
+  <!-- Koptekst -->
+  <div class="koptekst">
     <div>
-      <h1>MRI Registratieformulier Implantaten</h1>
-      <p>Deventer Ziekenhuis</p>
+      <div class="koptekst-titel">MRI registratieformulier IMPLANTATEN</div>
+      <div class="koptekst-datum" id="form-datum-kop"></div>
+    </div>
+    <div class="dz-logo">
+      <div class="dz-naam">Deventer</div>
+      <div class="dz-naam">Ziekenhuis</div>
     </div>
   </div>
-  <div class="header-badge">Radiologie</div>
-</header>
 
-<div class="layout">
-
-  <!-- LEFT: zoeken + bibliotheek -->
-  <div>
-    <div class="card" style="margin-bottom:1.25rem">
-      <div class="card-header">
-        <div class="card-header-icon" style="background:#e8eef9">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a4fa3" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        </div>
-        <span class="card-title">Implantaat opzoeken</span>
-      </div>
-      <div class="card-body">
-        <div class="search-wrap">
-          <input type="text" id="search-input" placeholder="Naam implantaat, bijv. Kurz TORP, Advisa MRI..." autocomplete="off"/>
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <div id="suggestions"></div>
-        </div>
-        <button class="btn-primary" id="search-btn" onclick="doLookup()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          Zoek MRI-veiligheid op
-        </button>
-        <div id="loading">
-          <div class="spin"></div>
-          <span id="loading-text">Zoeken...</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <div class="card-header-icon" style="background:#e8f4fb">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f5c8a" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </div>
-        <span class="card-title">PDF-bibliotheek</span>
-      </div>
-      <div class="card-body">
-        <div class="upload-zone" onclick="document.getElementById('pdf-input').click()" id="upload-zone">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9099ab" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
-          <p>Klik om een fabrikants-PDF te uploaden</p>
-        </div>
-        <input type="file" id="pdf-input" accept=".pdf" style="display:none" onchange="handlePdfUpload(event)"/>
-        <div id="empty-lib" class="empty-lib">Nog geen documenten.</div>
-        <div id="pdf-list"></div>
-        <div class="priority-note">
-          <strong>Prioriteit:</strong> 1. Geüploade PDFs &nbsp;·&nbsp; 2. Websearch &nbsp;·&nbsp; 3. AI-kennis<br>
-          Bron wordt altijd vermeld in het formulier.
+  <!-- Patientensticker + gegevens -->
+  <div class="sticker-sectie">
+    <div>
+      <div class="sticker-box">
+        <div class="sticker-label">Patiëntensticker</div>
+        <div style="display:flex;flex-direction:column;gap:5px;margin-top:4px">
+          <div class="gegevens-row">
+            <span class="gegevens-label">In te vullen door:</span>
+            <input type="text" class="gegevens-input" id="pat-ingevuld" placeholder=".........."/>
+          </div>
+          <div class="gegevens-row">
+            <span class="gegevens-label">Naam patiënt:</span>
+            <input type="text" class="gegevens-input" id="pat-naam" placeholder=".........."/>
+          </div>
+          <div class="gegevens-row">
+            <span class="gegevens-label">Geboortedatum:</span>
+            <input type="text" class="gegevens-input" id="pat-geb" placeholder=".........."/>
+          </div>
+          <div class="gegevens-row">
+            <span class="gegevens-label">Gevraagd MRI onderzoek:</span>
+            <input type="text" class="gegevens-input" id="pat-onderzoek" placeholder="MRI.........."/>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- RIGHT: formulier -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-header-icon" style="background:#e6eef7">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#003d7a" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      </div>
-      <span class="card-title">MRI Registratieformulier Implantaten</span>
+  <!-- Informatie implantaat -->
+  <div class="sectie">
+    <div class="sectie-titel">Informatie Implantaat:</div>
+    <div class="impl-row">
+      <span class="impl-label">Naam:</span>
+      <input type="text" class="impl-input" id="impl-naam" placeholder=".........................................................."/>
     </div>
-    <div class="card-body">
-
-      <!-- Patiëntgegevens -->
-      <div class="form-section">
-        <div class="form-section-title">Patiëntgegevens</div>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Naam patiënt</label>
-            <input type="text" id="pat-naam" placeholder="Achternaam, Voornaam"/>
-          </div>
-          <div class="form-field">
-            <label>Geboortedatum</label>
-            <input type="text" id="pat-geb" placeholder="DD-MM-JJJJ"/>
-          </div>
-        </div>
-        <div class="form-row single">
-          <div class="form-field">
-            <label>Gevraagd MRI-onderzoek</label>
-            <input type="text" id="pat-onderzoek" placeholder="Bijv. MRI hersenen, MRI knie..."/>
-          </div>
-        </div>
-      </div>
-
-      <!-- Implantaatgegevens -->
-      <div class="form-section">
-        <div class="form-section-title">Informatie implantaat</div>
-        <div class="form-row single">
-          <div class="form-field">
-            <label>Naam implantaat</label>
-            <input type="text" id="impl-naam" placeholder="Wordt automatisch ingevuld na zoeken"/>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label>Type</label>
-            <input type="text" id="impl-type" placeholder="Type / model"/>
-          </div>
-          <div class="form-field">
-            <label>Serienummer</label>
-            <input type="text" id="impl-serie" placeholder="Serienummer"/>
-          </div>
-        </div>
-      </div>
-
-      <!-- In te vullen door radioloog -->
-      <div id="formulier">
-        <div class="form-section">
-          <div class="form-section-title">In te vullen door Radioloog</div>
-
-          <div id="res-source-tag" class="source-tag" style="display:none"></div>
-          <div id="warn-box" class="warn-box" style="display:none"></div>
-
-          <div class="status-options">
-            <label class="status-option" id="opt-unsafe" onclick="selectStatus('unsafe')">
-              <input type="radio" name="mr-status" value="unsafe"/>
-              <div>
-                <div class="status-option-label">MR – Unsafe</div>
-                <div class="status-option-desc">MRI-scan is gecontra-indiceerd</div>
-              </div>
-            </label>
-            <label class="status-option" id="opt-safe-both" onclick="selectStatus('safe-both')">
-              <input type="radio" name="mr-status" value="safe-both"/>
-              <div>
-                <div class="status-option-label">MR – Safe voor 1.5T én 3T</div>
-              </div>
-            </label>
-            <label class="status-option" id="opt-safe-15" onclick="selectStatus('safe-15')">
-              <input type="radio" name="mr-status" value="safe-15"/>
-              <div>
-                <div class="status-option-label">MR – Safe voor 1.5T</div>
-              </div>
-            </label>
-            <label class="status-option" id="opt-cond-both" onclick="selectStatus('cond-both')">
-              <input type="radio" name="mr-status" value="cond-both"/>
-              <div>
-                <div class="status-option-label">MR – Conditional voor 1.5T én 3T *</div>
-              </div>
-            </label>
-            <label class="status-option" id="opt-cond-15" onclick="selectStatus('cond-15')">
-              <input type="radio" name="mr-status" value="cond-15"/>
-              <div>
-                <div class="status-option-label">MR – Conditional voor 1.5T *</div>
-              </div>
-            </label>
-          </div>
-
-          <!-- Conditional parameters -->
-          <div id="conditional-params">
-            <div class="conditional-title">* MR Conditional — scanrestricties invullen</div>
-
-            <div class="param-row">
-              <div class="param-name">Max. Spatial Gradiënt Field</div>
-              <input type="text" class="param-input" id="p-gauss" placeholder="—"/>
-              <div class="param-unit">Gauss/cm</div>
-            </div>
-            <div class="param-row">
-              <div class="param-name"></div>
-              <input type="text" class="param-input" id="p-tm" placeholder="—"/>
-              <div class="param-unit">T/m</div>
-            </div>
-
-            <div class="param-row" style="margin-top:6px">
-              <div class="param-name">Maximum SAR**</div>
-              <input type="text" class="param-input" id="p-sar-wb" placeholder="—"/>
-              <div class="param-unit">W/kg WB</div>
-            </div>
-            <div class="param-row">
-              <div class="param-name"></div>
-              <input type="text" class="param-input" id="p-sar-head" placeholder="—"/>
-              <div class="param-unit">W/kg Head</div>
-            </div>
-            <div style="font-size:11px;color:var(--text-faint);margin-bottom:8px;padding-left:168px">** Indien onbekend: max. 2 W/kg whole body of 3,2 W/kg hersenen</div>
-
-            <div class="param-row">
-              <div class="param-name">B1+rms</div>
-              <input type="text" class="param-input" id="p-b1" placeholder="—"/>
-              <div class="param-unit">μT</div>
-            </div>
-
-            <div class="param-row">
-              <div class="param-name">Maximum dB/dT</div>
-              <input type="text" class="param-input" id="p-dbdt" placeholder="—"/>
-              <div class="param-unit">T/s</div>
-            </div>
-
-            <div class="param-row">
-              <div class="param-name">Maximum slewrate</div>
-              <input type="text" class="param-input" id="p-slew" placeholder="—"/>
-              <div class="param-unit">T/m/s</div>
-            </div>
-          </div>
-
-          <!-- Opmerkingen -->
-          <div class="opmerkingen-wrap">
-            <div class="form-field">
-              <label>Overige opmerkingen over scanrestricties</label>
-              <textarea id="p-opmerkingen" placeholder="Bijv. aanvullende condities, coilbeperkingen, scanmodus..."></textarea>
-            </div>
-          </div>
-
-          <!-- Bron -->
-          <div class="form-field" style="margin-bottom:1rem">
-            <label>Bron / referentie</label>
-            <input type="text" id="p-bron" placeholder="Wordt automatisch ingevuld"/>
-          </div>
-        </div>
-
-        <!-- Handtekening -->
-        <div class="form-section">
-          <div class="form-section-title">Handtekening Radioloog</div>
-          <div class="sig-block">
-            <div class="sig-grid">
-              <div>
-                <span class="sig-label">Datum</span>
-                <input type="text" class="sig-input" id="sig-datum" placeholder="DD-MM-JJJJ"/>
-              </div>
-              <div>
-                <span class="sig-label">Naam Radioloog</span>
-                <input type="text" class="sig-input" id="sig-naam" placeholder="Dr. ..."/>
-              </div>
-            </div>
-            <span class="sig-label">Handtekening</span>
-            <canvas id="sig-canvas" width="700" height="72"></canvas>
-            <div class="sig-actions">
-              <button class="btn-secondary" onclick="clearSig()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg>
-                Wissen
-              </button>
-            </div>
-            <button class="btn-primary" id="sign-btn" onclick="signForm()">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-              Formulier ondertekenen
-            </button>
-            <div class="signed-ok" id="signed-ok">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-              <span id="signed-text"></span>
-            </div>
-          </div>
-          <p style="font-size:11px;color:var(--text-faint);margin-top:8px;text-align:center">Ingevuld en ondertekend formulier inleveren bij het MRI secretariaat.</p>
-        </div>
-      </div>
-
-      <!-- Placeholder als nog niet gezocht -->
-      <div id="formulier-placeholder" style="padding:2rem 0;text-align:center;color:var(--text-faint)">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px;display:block"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <p style="font-size:13px">Zoek een implantaat op om het formulier in te vullen.</p>
-      </div>
-
+    <div class="impl-row">
+      <span class="impl-label">Type:</span>
+      <input type="text" class="impl-input" id="impl-type" placeholder=".........................................................."/>
+    </div>
+    <div class="impl-row">
+      <span class="impl-label">Serie nr.:</span>
+      <input type="text" class="impl-input" id="impl-serie" placeholder=".........................................................."/>
     </div>
   </div>
+
+  <hr style="border:none;border-top:1px solid #ccc;margin:12px 0"/>
+
+  <!-- In te vullen door Radioloog -->
+  <div class="sectie">
+    <div class="rad-sectie-titel">In te vullen door Radioloog:</div>
+    <div style="font-size:12px;margin-bottom:8px">Kruis aan wat van toepassing is:</div>
+
+    <div style="font-size:12px;margin-bottom:6px">Implantaat is:</div>
+
+    <div class="checkbox-groep">
+      <div class="checkbox-rij" id="rij-unsafe" onclick="selecteer('unsafe')">
+        <div class="checkbox-vakje" id="vak-unsafe"></div>
+        <span class="checkbox-tekst">MR - Unsafe</span>
+      </div>
+      <div class="checkbox-rij" id="rij-safe-both" onclick="selecteer('safe-both')">
+        <div class="checkbox-vakje" id="vak-safe-both"></div>
+        <span class="checkbox-tekst">MR - Safe voor 1.5T én 3T</span>
+      </div>
+      <div class="checkbox-rij" id="rij-safe-15" onclick="selecteer('safe-15')">
+        <div class="checkbox-vakje" id="vak-safe-15"></div>
+        <span class="checkbox-tekst">MR - Safe voor 1.5T</span>
+      </div>
+      <div class="checkbox-rij" id="rij-cond-both" onclick="selecteer('cond-both')">
+        <div class="checkbox-vakje" id="vak-cond-both"></div>
+        <span class="checkbox-tekst">MR - Conditional voor 1.5T én 3T *</span>
+      </div>
+      <div class="checkbox-rij" id="rij-cond-15" onclick="selecteer('cond-15')">
+        <div class="checkbox-vakje" id="vak-cond-15"></div>
+        <span class="checkbox-tekst">MR - Conditional voor 1.5T *</span>
+      </div>
+    </div>
+
+    <!-- Conditional parameters -->
+    <div id="conditional-blok">
+      <div style="font-size:11px;font-style:italic;margin-bottom:8px">* Indien <strong>MR – Conditional</strong>, onderstaande vragen zo volledig mogelijk invullen:</div>
+      <table class="param-tabel">
+        <tr>
+          <td class="param-naam">Maximum Spatial Gradiënt Field:</td>
+          <td><input type="text" class="param-waarde-input" id="p-gauss" placeholder="......"/></td>
+          <td class="param-eenheid">Gauss/cm</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="text" class="param-waarde-input" id="p-tm" placeholder="......"/></td>
+          <td class="param-eenheid">T/m</td>
+          <td></td>
+        </tr>
+        <tr><td colspan="4" style="height:4px"></td></tr>
+        <tr>
+          <td class="param-naam">Maximum SAR**:</td>
+          <td><input type="text" class="param-waarde-input" id="p-sar-wb" placeholder="......"/></td>
+          <td class="param-eenheid">W/kg</td>
+          <td class="param-eenheid">Whole body</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><input type="text" class="param-waarde-input" id="p-sar-head" placeholder="......"/></td>
+          <td class="param-eenheid">W/kg</td>
+          <td class="param-eenheid">Head</td>
+        </tr>
+        <tr>
+          <td colspan="4" class="param-noot">** Indien maximum SAR niet bekend is, dan: maximaal 2W/kg whole body of 3,2W/kg hersenen</td>
+        </tr>
+        <tr><td colspan="4" style="height:4px"></td></tr>
+        <tr>
+          <td class="param-naam">B1 + rms</td>
+          <td><input type="text" class="param-waarde-input" id="p-b1" placeholder="......"/></td>
+          <td class="param-eenheid">μT</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="param-naam">Maximum dB/dT:</td>
+          <td><input type="text" class="param-waarde-input" id="p-dbdt" placeholder="......"/></td>
+          <td class="param-eenheid">T/s</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td class="param-naam">Maximum slewrate:</td>
+          <td><input type="text" class="param-waarde-input" id="p-slew" placeholder="......"/></td>
+          <td class="param-eenheid">T/m/s</td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Opmerkingen -->
+    <div style="margin-top:10px">
+      <div class="opm-label">Overige opmerkingen over scanrestricties:</div>
+      <textarea class="opm-input" id="p-opmerkingen" placeholder=""></textarea>
+    </div>
+
+    <!-- Bron -->
+    <div class="bron-regel" id="bron-regel" style="display:none"></div>
+  </div>
+
+  <!-- Handtekening blok -->
+  <div class="hantekening-blok">
+    <div class="ht-row">
+      <span class="ht-label">Datum:</span>
+      <input type="text" class="ht-input" id="ht-datum" placeholder=""/>
+    </div>
+    <div class="ht-row">
+      <span class="ht-label">Naam Radioloog:</span>
+      <input type="text" class="ht-input" id="ht-naam" placeholder=""/>
+    </div>
+    <div class="ht-canvas-label">Handtekening:</div>
+    <canvas id="sig-canvas" width="700" height="72"></canvas>
+    <div class="sig-acties">
+      <button class="btn-wis" onclick="clearSig()">✕ Wissen</button>
+    </div>
+    <button class="btn-onderteken" id="sign-btn" onclick="onderteken()">Formulier ondertekenen</button>
+    <div class="ondertekend-ok" id="ondertekend-ok">
+      ✓ <span id="ondertekend-tekst"></span>
+    </div>
+  </div>
+
+  <div class="formulier-footer">Ingevuld en ondertekend formulier inleveren bij het MRI secretariaat.</div>
 </div>
 
 <script>
@@ -422,227 +355,229 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 const HIST_KEY = 'mri_hist';
 const PDF_KEY = 'mri_pdfs';
 
-function getHistory() { try { return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); } catch(e) { return []; } }
-function saveHistory(t) { let h=getHistory(); h=[t,...h.filter(x=>x.toLowerCase()!==t.toLowerCase())].slice(0,30); localStorage.setItem(HIST_KEY,JSON.stringify(h)); }
-function getPdfs() { try { return JSON.parse(localStorage.getItem(PDF_KEY)||'[]'); } catch(e) { return []; } }
-function savePdfs(a) { localStorage.setItem(PDF_KEY,JSON.stringify(a)); }
+function getHistory(){try{return JSON.parse(localStorage.getItem(HIST_KEY)||'[]')}catch(e){return[]}}
+function saveHistory(t){let h=getHistory();h=[t,...h.filter(x=>x.toLowerCase()!==t.toLowerCase())].slice(0,30);localStorage.setItem(HIST_KEY,JSON.stringify(h))}
+function getPdfs(){try{return JSON.parse(localStorage.getItem(PDF_KEY)||'[]')}catch(e){return[]}}
+function savePdfs(a){localStorage.setItem(PDF_KEY,JSON.stringify(a))}
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded',()=>{
   renderPdfList();
-  // Set today's date
-  const now = new Date();
-  document.getElementById('sig-datum').value = now.toLocaleDateString('nl-NL');
+  const now=new Date();
+  document.getElementById('form-datum-kop').textContent=now.toLocaleDateString('nl-NL',{day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('ht-datum').value=now.toLocaleDateString('nl-NL');
 });
 
-const input = document.getElementById('search-input');
-const sugg = document.getElementById('suggestions');
-input.addEventListener('input', () => {
-  const q = input.value.trim().toLowerCase();
-  sugg.innerHTML = ''; sugg.style.display = 'none';
-  if (q.length < 2) return;
-  const m = getHistory().filter(x => x.toLowerCase().includes(q)).slice(0, 6);
-  if (!m.length) return;
-  m.forEach(s => {
-    const d = document.createElement('div'); d.className = 'sug-item';
-    d.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 110 2"/></svg>${s}`;
-    d.onclick = () => { input.value = s; sugg.style.display = 'none'; };
+// Zoeksuggesties
+const input=document.getElementById('search-input');
+const sugg=document.getElementById('suggestions');
+input.addEventListener('input',()=>{
+  const q=input.value.trim().toLowerCase();
+  sugg.innerHTML='';sugg.style.display='none';
+  if(q.length<2)return;
+  const m=getHistory().filter(x=>x.toLowerCase().includes(q)).slice(0,6);
+  if(!m.length)return;
+  m.forEach(s=>{
+    const d=document.createElement('div');d.className='sug-item';d.textContent=s;
+    d.onclick=()=>{input.value=s;sugg.style.display='none'};
     sugg.appendChild(d);
   });
-  sugg.style.display = 'block';
+  sugg.style.display='block';
 });
-input.addEventListener('keydown', e => { if (e.key === 'Enter') doLookup(); });
-document.addEventListener('click', e => { if (!e.target.closest('.search-wrap')) sugg.style.display = 'none'; });
+input.addEventListener('keydown',e=>{if(e.key==='Enter')doLookup()});
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))sugg.style.display='none'});
 
-function selectStatus(val) {
-  document.querySelectorAll('.status-option').forEach(el => {
-    el.classList.remove('selected-unsafe', 'selected-safe', 'selected-conditional');
+// Aanvinkvakjes
+let huidigeSel=null;
+function selecteer(val){
+  // Reset alles
+  ['unsafe','safe-both','safe-15','cond-both','cond-15'].forEach(v=>{
+    document.getElementById('vak-'+v).className='checkbox-vakje';
+    document.getElementById('rij-'+v).className='checkbox-rij';
   });
-  const el = document.getElementById('opt-' + val);
-  if (!el) return;
-  if (val === 'unsafe') el.classList.add('selected-unsafe');
-  else if (val.startsWith('safe')) el.classList.add('selected-safe');
-  else el.classList.add('selected-conditional');
-  el.querySelector('input[type=radio]').checked = true;
-  document.getElementById('conditional-params').style.display = val.startsWith('cond') ? 'block' : 'none';
+  // Selecteer nieuw
+  document.getElementById('vak-'+val).className='checkbox-vakje checked';
+  const rij=document.getElementById('rij-'+val);
+  if(val==='unsafe')rij.className='checkbox-rij geselecteerd-unsafe';
+  else if(val.startsWith('safe'))rij.className='checkbox-rij geselecteerd-safe';
+  else rij.className='checkbox-rij geselecteerd-conditional';
+  huidigeSel=val;
+  document.getElementById('conditional-blok').style.display=val.startsWith('cond')?'block':'none';
 }
 
-async function doLookup() {
-  const q = input.value.trim(); if (!q) return;
+// Zoekfunctie
+async function doLookup(){
+  const q=input.value.trim();if(!q)return;
   saveHistory(q);
-  document.getElementById('loading').style.display = 'flex';
-  document.getElementById('search-btn').disabled = true;
+  setStatus('loading','Databases worden geraadpleegd...');
+  document.getElementById('search-btn').disabled=true;
 
-  const pdfs = getPdfs();
-  const pdfText = pdfs.length ? pdfs.map((p,i) => `=== ${p.name} ===\n${p.text}`).join('\n\n') : null;
+  const pdfs=getPdfs();
+  const pdfText=pdfs.length?pdfs.map(p=>`=== ${p.name} ===\n${p.text}`).join('\n\n'):null;
 
-  try {
-    const resp = await fetch('/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query: q, pdfText: pdfText || null })
+  try{
+    const resp=await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({query:q,pdfText:pdfText||null})
     });
-    const rawText = await resp.text();
-    const data = JSON.parse(rawText);
-    const text = data.content.map(i => i.text||'').join('').replace(/```json|```/g,'').trim();
-    const m = text.match(/\{[\s\S]*\}/);
-    if (!m) throw new Error('Geen geldig antwoord');
-    const r = JSON.parse(m[0]);
-    fillForm(r, data.used_pdf && r.found_in_pdf ? 'pdf' : data.used_web_search ? 'web' : 'ai');
-  } catch(e) {
-    alert('Fout: ' + e.message);
+    const rawText=await resp.text();
+    const data=JSON.parse(rawText);
+    const text=data.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+    const m=text.match(/\{[\s\S]*\}/);
+    if(!m)throw new Error('Geen geldig antwoord ontvangen');
+    const r=JSON.parse(m[0]);
+    vulFormulierIn(r, data.used_pdf&&r.found_in_pdf?'pdf':data.used_web_search?'web':'ai');
+  }catch(e){
+    setStatus('ai-source','⚠ Fout: '+e.message);
   }
-
-  document.getElementById('loading').style.display = 'none';
-  document.getElementById('search-btn').disabled = false;
+  document.getElementById('search-btn').disabled=false;
 }
 
-function fillForm(r, sourceType) {
-  // Show form
-  document.getElementById('formulier').style.display = 'block';
-  document.getElementById('formulier-placeholder').style.display = 'none';
+function vulFormulierIn(r, bronType){
+  // Implantaat naam
+  if(r.name) document.getElementById('impl-naam').value=r.name;
+  if(r.manufacturer) document.getElementById('impl-type').value=r.manufacturer;
 
-  // Fill implant name
-  document.getElementById('impl-naam').value = r.name || '';
-  document.getElementById('impl-type').value = r.manufacturer || '';
+  // Status balk
+  let bronTekst='';
+  if(bronType==='pdf'){bronTekst='📄 Bron: '+(r.document_name||'Fabrikantsdocument');if(r.document_section)bronTekst+=' — '+r.document_section;setStatus('pdf-source',bronTekst);}
+  else if(bronType==='web'){bronTekst='🌐 Bron: Live websearch';if(r.sources&&r.sources.length)bronTekst+=' ('+r.sources.map(s=>s.title||s.url).filter(Boolean).join(', ')+')';setStatus('web-source',bronTekst);}
+  else{bronTekst='🤖 AI-kennis — verifieer bij fabrikant vóór ondertekening';setStatus('ai-source','⚠ '+bronTekst);}
 
-  // Source tag
-  const tag = document.getElementById('res-source-tag');
-  tag.style.display = 'inline-flex';
-  if (sourceType === 'pdf') {
-    tag.className = 'source-tag pdf';
-    tag.textContent = '📄 Bron: ' + (r.document_name || 'Fabrikantsdocument');
-  } else if (sourceType === 'web') {
-    tag.className = 'source-tag web';
-    tag.textContent = '🌐 Bron: Live websearch';
-  } else {
-    tag.className = 'source-tag ai';
-    tag.textContent = '🤖 Bron: AI-kennis — verifieer bij fabrikant';
+  // Bron in formulier
+  let bronFormulier=bronTekst.replace(/^[📄🌐🤖⚠ ]+/,'').replace('Bron: ','');
+  if(r.ref_numbers)bronFormulier+=' (REF: '+r.ref_numbers+')';
+  document.getElementById('bron-regel').textContent='Geraadpleegde bron: '+bronFormulier;
+  document.getElementById('bron-regel').style.display='block';
+
+  // MR status aanvinken
+  const status=r.status||'';
+  if(status==='MR Unsafe')selecteer('unsafe');
+  else if(status==='MR Safe'){
+    const info=JSON.stringify(r);
+    const heeft3T=info.includes('3.0')||info.includes('3,0')||info.includes('3T')||info.includes('7');
+    selecteer(heeft3T?'safe-both':'safe-15');
+  }else if(status==='MR Conditional'){
+    const params=r.params||[];
+    const veld=params.find(p=>p.label.toLowerCase().includes('veld')||p.label.toLowerCase().includes('field')||p.label.toLowerCase().includes('tesla'));
+    const heeft3T=veld&&(veld.value.includes('3')||veld.value.includes('7'));
+    selecteer(heeft3T?'cond-both':'cond-15');
   }
 
-  // Warning
-  const warn = document.getElementById('warn-box');
-  if (sourceType === 'ai' || r.confidence === 'laag') {
-    warn.style.display = 'block';
-    warn.textContent = '⚠️ Dit resultaat is gebaseerd op AI-kennis, niet op een live bron. Verifieer altijd bij de fabrikant vóór ondertekening.';
-  } else { warn.style.display = 'none'; }
+  // Parameters invullen
+  // Reset eerst
+  ['p-gauss','p-tm','p-sar-wb','p-sar-head','p-b1','p-dbdt','p-slew'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  document.getElementById('p-opmerkingen').value='';
 
-  // Set MR status
-  const status = r.status || '';
-  if (status === 'MR Unsafe') selectStatus('unsafe');
-  else if (status === 'MR Safe') {
-    // Check if 3T is mentioned
-    const has3T = JSON.stringify(r).includes('3') || JSON.stringify(r).includes('3.0');
-    selectStatus(has3T ? 'safe-both' : 'safe-15');
-  } else if (status === 'MR Conditional') {
-    const params = r.params || [];
-    const veldsterkte = params.find(p => p.label.toLowerCase().includes('veld') || p.label.toLowerCase().includes('field') || p.label.toLowerCase().includes('tesla'));
-    const has3T = veldsterkte && (veldsterkte.value.includes('3') || veldsterkte.value.includes('7'));
-    selectStatus(has3T ? 'cond-both' : 'cond-15');
-  }
-
-  // Fill params
-  if (r.params && r.params.length) {
-    r.params.forEach(p => {
-      const l = p.label.toLowerCase();
-      if (l.includes('gauss')) document.getElementById('p-gauss').value = p.value;
-      else if (l.includes('t/m') || l.includes('gradient')) document.getElementById('p-tm').value = p.value;
-      else if (l.includes('sar') && (l.includes('wb') || l.includes('whole') || l.includes('lichaam') || l.includes('body'))) document.getElementById('p-sar-wb').value = p.value;
-      else if (l.includes('sar') && l.includes('head')) document.getElementById('p-sar-head').value = p.value;
-      else if (l.includes('sar') && !l.includes('head')) document.getElementById('p-sar-wb').value = p.value;
-      else if (l.includes('b1')) document.getElementById('p-b1').value = p.value;
-      else if (l.includes('db') || l.includes('dB/dT')) document.getElementById('p-dbdt').value = p.value;
-      else if (l.includes('slew')) document.getElementById('p-slew').value = p.value;
-      else if (l.includes('temp') || l.includes('stijging')) document.getElementById('p-opmerkingen').value += (document.getElementById('p-opmerkingen').value ? '\n' : '') + p.label + ': ' + p.value;
+  if(r.params&&r.params.length){
+    r.params.forEach(p=>{
+      const l=p.label.toLowerCase();
+      const v=p.value;
+      if(l.includes('gauss'))document.getElementById('p-gauss').value=v;
+      else if(l.includes('t/m')||l.includes('gradient field'))document.getElementById('p-tm').value=v;
+      else if(l.includes('sar')&&(l.includes('wb')||l.includes('whole')||l.includes('lichaam')||l.includes('body')))document.getElementById('p-sar-wb').value=v;
+      else if(l.includes('sar')&&l.includes('head'))document.getElementById('p-sar-head').value=v;
+      else if(l.includes('sar')&&!l.includes('head'))document.getElementById('p-sar-wb').value=v;
+      else if(l.includes('b1'))document.getElementById('p-b1').value=v;
+      else if(l.includes('db')||l.includes('dB/dT')||l.includes('dbdt'))document.getElementById('p-dbdt').value=v;
+      else if(l.includes('slew'))document.getElementById('p-slew').value=v;
+      else{
+        const cur=document.getElementById('p-opmerkingen').value;
+        document.getElementById('p-opmerkingen').value=(cur?cur+'\n':'')+p.label+': '+p.value;
+      }
     });
   }
 
-  // Opmerkingen
-  if (r.advice) {
-    const cur = document.getElementById('p-opmerkingen').value;
-    if (!cur) document.getElementById('p-opmerkingen').value = r.advice;
+  // Advies in opmerkingen
+  if(r.advice&&!document.getElementById('p-opmerkingen').value){
+    document.getElementById('p-opmerkingen').value=r.advice;
   }
 
-  // Bron
-  let bronText = '';
-  if (sourceType === 'pdf') bronText = r.document_name || 'Fabrikantsdocument';
-  else if (r.sources && r.sources.length) bronText = r.sources.map(s => s.title || s.url).filter(Boolean).join('; ');
-  else bronText = 'AI-kennis (verifieer bij fabrikant)';
-  if (r.document_section) bronText += ' — ' + r.document_section;
-  if (r.ref_numbers) bronText += ' (REF: ' + r.ref_numbers + ')';
-  document.getElementById('p-bron').value = bronText;
-
-  // Reset signature
-  document.getElementById('sign-btn').style.display = 'flex';
-  document.getElementById('signed-ok').style.display = 'none';
+  // Reset handtekening
+  document.getElementById('sign-btn').style.display='block';
+  document.getElementById('ondertekend-ok').style.display='none';
   clearSig();
 }
 
-// PDF upload
-async function handlePdfUpload(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const zone = document.getElementById('upload-zone');
-  zone.innerHTML = '<div class="spin" style="margin:0 auto 6px"></div><p>PDF wordt verwerkt...</p>';
-  try {
-    const ab = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
-    let text = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map(it => it.str).join(' ') + '\n';
-    }
-    const pdfs = getPdfs();
-    pdfs.unshift({ name: file.name, date: new Date().toLocaleDateString('nl-NL'), text: text.slice(0, 40000) });
-    savePdfs(pdfs); renderPdfList();
-  } catch(err) { alert('Kon PDF niet verwerken: ' + err.message); }
-  e.target.value = '';
-  zone.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9099ab" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><p>Klik om een fabrikants-PDF te uploaden</p>';
+function setStatus(type,tekst){
+  const bar=document.getElementById('status-bar');
+  bar.className='';
+  bar.style.display='flex';
+  if(type==='loading'){bar.className='status-bar loading';bar.innerHTML='<div class="spin"></div><span>'+tekst+'</span>';}
+  else{bar.className='status-bar '+type;bar.textContent=tekst;}
 }
 
-function renderPdfList() {
-  const pdfs = getPdfs();
-  document.getElementById('empty-lib').style.display = pdfs.length ? 'none' : 'block';
-  const list = document.getElementById('pdf-list'); list.innerHTML = '';
-  pdfs.forEach((p, i) => {
-    const d = document.createElement('div'); d.className = 'pdf-item';
-    d.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f5c8a" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <div class="pdf-item-body"><div class="pdf-item-name">${p.name}</div><div class="pdf-item-meta">Geüpload: ${p.date}</div></div>
-      <button class="pdf-del" onclick="deletePdf(${i})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M9 6V4h6v2"/></svg></button>`;
+// PDF beheer
+function togglePdfPanel(){
+  const p=document.getElementById('pdf-panel');
+  p.style.display=p.style.display==='none'?'block':'none';
+}
+
+async function handlePdfUpload(e){
+  const file=e.target.files[0];if(!file)return;
+  document.getElementById('upload-zone').textContent='⏳ Verwerken...';
+  try{
+    const ab=await file.arrayBuffer();
+    const pdf=await pdfjsLib.getDocument({data:ab}).promise;
+    let text='';
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i);
+      const content=await page.getTextContent();
+      text+=content.items.map(it=>it.str).join(' ')+'\n';
+    }
+    const pdfs=getPdfs();
+    pdfs.unshift({name:file.name,date:new Date().toLocaleDateString('nl-NL'),text:text.slice(0,40000)});
+    savePdfs(pdfs);renderPdfList();
+  }catch(err){alert('Kon PDF niet verwerken: '+err.message);}
+  e.target.value='';
+  document.getElementById('upload-zone').textContent='⬆ Fabrikants-PDF uploaden';
+}
+
+function renderPdfList(){
+  const pdfs=getPdfs();
+  const list=document.getElementById('pdf-list');list.innerHTML='';
+  const label=document.getElementById('pdf-count-label');
+  label.textContent=pdfs.length?pdfs.length+' document(en) geladen':'Geen documenten';
+  pdfs.forEach((p,i)=>{
+    const d=document.createElement('div');d.className='pdf-chip';
+    d.innerHTML=`📄 ${p.name} <button onclick="verwijderPdf(${i})" title="Verwijderen">✕</button>`;
     list.appendChild(d);
   });
 }
 
-function deletePdf(i) {
-  if (!confirm('Document verwijderen?')) return;
-  const pdfs = getPdfs(); pdfs.splice(i, 1); savePdfs(pdfs); renderPdfList();
+function verwijderPdf(i){
+  if(!confirm('Document verwijderen?'))return;
+  const pdfs=getPdfs();pdfs.splice(i,1);savePdfs(pdfs);renderPdfList();
 }
 
-// Signature
-const canvas = document.getElementById('sig-canvas');
-const ctx = canvas.getContext('2d');
-let drawing = false;
-function getPos(e) {
-  const rect = canvas.getBoundingClientRect();
-  const sx = canvas.width/rect.width, sy = canvas.height/rect.height;
-  const src = e.touches ? e.touches[0] : e;
-  return { x: (src.clientX-rect.left)*sx, y: (src.clientY-rect.top)*sy };
+// Handtekening
+const canvas=document.getElementById('sig-canvas');
+const ctx=canvas.getContext('2d');
+let drawing=false;
+function getPos(e){
+  const rect=canvas.getBoundingClientRect();
+  const sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+  const src=e.touches?e.touches[0]:e;
+  return{x:(src.clientX-rect.left)*sx,y:(src.clientY-rect.top)*sy};
 }
-canvas.addEventListener('mousedown', e => { drawing=true; const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); });
-canvas.addEventListener('mousemove', e => { if(!drawing)return; const p=getPos(e); ctx.strokeStyle='#1c2333'; ctx.lineWidth=1.5; ctx.lineCap='round'; ctx.lineTo(p.x,p.y); ctx.stroke(); });
-canvas.addEventListener('mouseup', ()=>drawing=false);
-canvas.addEventListener('mouseleave', ()=>drawing=false);
-canvas.addEventListener('touchstart', e=>{e.preventDefault();drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
-canvas.addEventListener('touchmove', e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);ctx.strokeStyle='#1c2333';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.lineTo(p.x,p.y);ctx.stroke()});
-canvas.addEventListener('touchend', ()=>drawing=false);
-function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+canvas.addEventListener('mousedown',e=>{drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+canvas.addEventListener('mousemove',e=>{if(!drawing)return;const p=getPos(e);ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.lineTo(p.x,p.y);ctx.stroke()});
+canvas.addEventListener('mouseup',()=>drawing=false);
+canvas.addEventListener('mouseleave',()=>drawing=false);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y)});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;const p=getPos(e);ctx.strokeStyle='#000';ctx.lineWidth=1.5;ctx.lineCap='round';ctx.lineTo(p.x,p.y);ctx.stroke()});
+canvas.addEventListener('touchend',()=>drawing=false);
+function clearSig(){ctx.clearRect(0,0,canvas.width,canvas.height);}
 
-function signForm() {
-  const naam = document.getElementById('sig-naam').value.trim();
-  if (!naam) { alert('Vul uw naam in.'); return; }
-  const datum = document.getElementById('sig-datum').value || new Date().toLocaleDateString('nl-NL');
-  document.getElementById('signed-text').textContent = `Ondertekend door ${naam} — ${datum}`;
-  document.getElementById('signed-ok').style.display = 'flex';
-  document.getElementById('sign-btn').style.display = 'none';
+function onderteken(){
+  const naam=document.getElementById('ht-naam').value.trim();
+  if(!naam){alert('Vul uw naam in.');return;}
+  const datum=document.getElementById('ht-datum').value||new Date().toLocaleDateString('nl-NL');
+  document.getElementById('ondertekend-tekst').textContent='Ondertekend door '+naam+' — '+datum;
+  document.getElementById('ondertekend-ok').style.display='flex';
+  document.getElementById('sign-btn').style.display='none';
 }
 </script>
 </body>
